@@ -1,0 +1,280 @@
+'''
+一、数据探索与数据分析
+  1. 导入必要的模块
+  2.1 导入基本的数据集合测试集
+  2.2 查看 TARGET 有无偿还贷款能力的数目对比（0表示是，1表示否）
+  2.3 查看数值型特征与TARGET的相关性
+  3.1 导入 bureau 数据集
+  3.2 查看每个客户在其他机构的账户数量
+  3.3 查看客户在其他机构的账户的活跃程度
+  3.4 查看客户之前的欠款数量
+  3.5 查看客户按时偿还/未偿还的情况（0代表按时偿还，1代表过期偿还）
+  3.6 查看overdue客户以前的欠款数目
+  3.7 查看有多少客户延期还款
+  4. 导入 bureau_balance 数据集（未发现太大作用）
+  5.1 导入 previous_application 数据集
+  5.2 查看客户以前的信用贷款数量
+  5.3sd 查看以前贷款的原因
+  5.4 查看以前贷款申请的结果情况
+  5.5 有多少客户以前被拒绝申请
+'''
+
+# 1. 导入必要的模块
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# 2.1 导入基本的训练、测试集
+data1=r'F:\LINs Learning Materials\Kaggle List\Home Credit Default Risk\application_train.csv'
+data1_=r'F:\LINs Learning Materials\Kaggle List\Home Credit Default Risk\application_test.csv'
+train=pd.read_csv(data1)
+test=pd.read_csv(data1_)
+#print(train.head())
+train.info(500)
+
+# 2.2 查看 TARGET 有无偿还贷款能力的数目对比（0表示是，1表示否）
+print(train['TARGET'].value_counts())
+can_pay=train[train['TARGET']==0]['TARGET'].count()
+cant_pay=train[train['TARGET']==1]['TARGET'].count()
+print(100*cant_pay/(cant_pay+can_pay))
+sns.countplot(train.TARGET,palette='muted')
+plt.xlabel('TARGET')
+plt.ylabel('Numbers')
+plt.show()
+
+# 2.3 查看数值型特征与TARGET的相关性
+numerical_features = train[['TARGET', 'SK_ID_CURR', 'CNT_CHILDREN', 'AMT_INCOME_TOTAL', 'AMT_CREDIT', 'AMT_ANNUITY', 
+                            'AMT_GOODS_PRICE','REGION_POPULATION_RELATIVE', 'DAYS_BIRTH', 'DAYS_EMPLOYED', 
+                            'DAYS_REGISTRATION', 'DAYS_ID_PUBLISH', 'OWN_CAR_AGE', 'FLAG_MOBIL', 'FLAG_EMP_PHONE', 
+                            'FLAG_WORK_PHONE','FLAG_CONT_MOBILE', 'FLAG_PHONE', 'FLAG_EMAIL','CNT_FAM_MEMBERS', 
+                            'REGION_RATING_CLIENT', 'REGION_RATING_CLIENT_W_CITY', 'HOUR_APPR_PROCESS_START', 
+                            'REG_REGION_NOT_LIVE_REGION', 'REG_REGION_NOT_WORK_REGION', 'LIVE_REGION_NOT_WORK_REGION',
+                            'REG_CITY_NOT_LIVE_CITY', 'REG_CITY_NOT_WORK_CITY','LIVE_CITY_NOT_WORK_CITY', 
+                            'EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3',
+                            'APARTMENTS_AVG', 'BASEMENTAREA_AVG', 'YEARS_BEGINEXPLUATATION_AVG',
+                            'YEARS_BUILD_AVG', 'COMMONAREA_AVG', 'ELEVATORS_AVG', 'ENTRANCES_AVG',
+                            'FLOORSMAX_AVG', 'FLOORSMIN_AVG', 'LANDAREA_AVG',
+                            'LIVINGAPARTMENTS_AVG', 'LIVINGAREA_AVG', 'NONLIVINGAPARTMENTS_AVG',
+                            'NONLIVINGAREA_AVG', 'APARTMENTS_MODE', 'BASEMENTAREA_MODE',
+                            'YEARS_BEGINEXPLUATATION_MODE', 'YEARS_BUILD_MODE', 'COMMONAREA_MODE',
+                            'ELEVATORS_MODE', 'ENTRANCES_MODE', 'FLOORSMAX_MODE', 'FLOORSMIN_MODE',
+                            'LANDAREA_MODE', 'LIVINGAPARTMENTS_MODE', 'LIVINGAREA_MODE',
+                            'NONLIVINGAPARTMENTS_MODE', 'NONLIVINGAREA_MODE', 'APARTMENTS_MEDI',
+                            'BASEMENTAREA_MEDI', 'YEARS_BEGINEXPLUATATION_MEDI', 'YEARS_BUILD_MEDI',
+                            'COMMONAREA_MEDI', 'ELEVATORS_MEDI', 'ENTRANCES_MEDI', 'FLOORSMAX_MEDI',
+                            'FLOORSMIN_MEDI', 'LANDAREA_MEDI', 'LIVINGAPARTMENTS_MEDI',
+                            'LIVINGAREA_MEDI', 'NONLIVINGAPARTMENTS_MEDI', 'NONLIVINGAREA_MEDI', 'TOTALAREA_MODE',
+                            'OBS_30_CNT_SOCIAL_CIRCLE', 'DEF_30_CNT_SOCIAL_CIRCLE',
+                            'OBS_60_CNT_SOCIAL_CIRCLE', 'DEF_60_CNT_SOCIAL_CIRCLE',
+                            'DAYS_LAST_PHONE_CHANGE', 'FLAG_DOCUMENT_2', 'FLAG_DOCUMENT_3',
+                            'FLAG_DOCUMENT_4', 'FLAG_DOCUMENT_5', 'FLAG_DOCUMENT_6',
+                            'FLAG_DOCUMENT_7', 'FLAG_DOCUMENT_8', 'FLAG_DOCUMENT_9',
+                            'FLAG_DOCUMENT_10', 'FLAG_DOCUMENT_11', 'FLAG_DOCUMENT_12',
+                            'FLAG_DOCUMENT_13', 'FLAG_DOCUMENT_14', 'FLAG_DOCUMENT_15',
+                            'FLAG_DOCUMENT_16', 'FLAG_DOCUMENT_17', 'FLAG_DOCUMENT_18',
+                            'FLAG_DOCUMENT_19', 'FLAG_DOCUMENT_20', 'FLAG_DOCUMENT_21',
+                            'AMT_REQ_CREDIT_BUREAU_HOUR', 'AMT_REQ_CREDIT_BUREAU_DAY',
+                            'AMT_REQ_CREDIT_BUREAU_WEEK', 'AMT_REQ_CREDIT_BUREAU_MON',
+                            'AMT_REQ_CREDIT_BUREAU_QRT', 'AMT_REQ_CREDIT_BUREAU_YEAR']]
+corelation=numerical_features.corr()
+corelation.abs().sort_values(by=['TARGET'],ascending=False)['TARGET']
+
+# 3.1 导入 bureau 数据集
+data2=r'F:\LINs Learning Materials\Kaggle List\Home Credit Default Risk\bureau.csv'
+data2_=r'F:\LINs Learning Materials\Kaggle List\Home Credit Default Risk\bureau_balance.csv'
+bureau=pd.read_csv(data2)
+bureau.head()
+bureau.info()
+len(bureau['SK_ID_CURR'].unique())
+
+# 3.2 查看每个客户在其他机构的账户数量
+bureau_account = bureau['SK_ID_BUREAU'].groupby(bureau['SK_ID_CURR'])
+bureau_account_num = bureau_account.count()
+print(bureau_account_num[:10])
+#sns.countplot(bureau_account_num)
+sns.distplot(bureau_account_num)
+plt.xlabel('Number of Previous Credit Loans per Client')
+plt.show()
+print(bureau_account_num.describe())
+
+# 3.3 查看客户在其他机构的账户的活跃程度
+active_account = bureau[['SK_ID_CURR', 'CREDIT_ACTIVE']]
+bureau_active_account = active_account[active_account['CREDIT_ACTIVE'] == 'Active']
+bureau_active_account_num = bureau_active_account['CREDIT_ACTIVE'].groupby(bureau_active_account['SK_ID_CURR']).count()
+sns.distplot(bureau_active_account_num)
+plt.xlabel('Number of Previous Active Credit Loans per Client')
+plt.show()
+print(bureau_active_account_num.describe())
+
+ 3.4 查看客户之前的欠款数量
+print('There are %s accounts with null debt amount' %bureau['AMT_CREDIT_SUM_DEBT'].isnull().sum())
+bureau_client_debt = bureau[['AMT_CREDIT_SUM_DEBT', 'SK_ID_CURR']]
+bureau_client_debt = bureau_client_debt[bureau_client_debt['AMT_CREDIT_SUM_DEBT'].notnull()]
+bureau_client_debt_amount = bureau_client_debt.groupby(bureau_client_debt['SK_ID_CURR']).sum()
+def amount_bins_debt(amount):
+    if amount < 10000:
+        amount = 'Low'
+    else: 
+        if amount > 10000 and amount < 100000:
+            amount = 'Medium'
+        else: 
+            if amount > 100000 and amount < 1000000:
+                amount = 'Medium High'
+            else:
+                amount = 'High'
+    return amount
+bureau_client_debt_bins = bureau_client_debt_amount['AMT_CREDIT_SUM_DEBT'].apply(amount_bins_debt)
+bureau_client_debt_bins
+
+sns.countplot(bureau_client_debt_bins, palette='muted')
+plt.xlabel("Current Debt Amount")
+plt.ylabel("Number of Clients")
+plt.show()
+bureau_client_debt_bins.value_counts()
+
+# 3.5 查看客户按时偿还/未偿还的情况（0代表按时偿还，1代表过期偿还）
+bureau_due = bureau[bureau['CREDIT_DAY_OVERDUE'] == 0]
+bureau_due = bureau_due[['SK_ID_CURR', 'CREDIT_DAY_OVERDUE','AMT_CREDIT_SUM_OVERDUE']]
+bureau_due_n = len(bureau_due['SK_ID_CURR'].unique())
+bureau_overdue = bureau[bureau['CREDIT_DAY_OVERDUE'] != 0]
+bureau_overdue = bureau_overdue[['SK_ID_CURR', 'CREDIT_DAY_OVERDUE', 'AMT_CREDIT_SUM_OVERDUE']]
+bureau_overdue_n = len(bureau_overdue['SK_ID_CURR'].unique())
+
+sns.barplot(x=['Due', 'Overdue'],y=[bureau_due_n, bureau_overdue_n], palette= 'muted')
+plt.ylabel("Number of Clients")
+plt.show()
+print('Due Clients: %s\nOverdue Clients: %s' %(bureau_due_n, bureau_overdue_n))
+
+bureau_max_client_overdue=bureau_overdue['CREDIT_DAY_OVERDUE'].groupby(bureau_overdue['SK_ID_CURR']).max()
+sns.distplot(bureau_max_client_overdue)
+plt.xlabel('Maximum Days Overdue per Client')
+plt.show()
+print(bureau_max_client_overdue.describe())
+
+# 3.6 查看overdue客户以前的欠款数目
+def amount_bins_overdue(overdue):
+    if overdue < 100:
+        overdue = 'Low'
+    else: 
+        if overdue > 100 and overdue < 1000:
+            overdue = 'Medium'
+        else: 
+            if overdue > 1000 and overdue < 10000:
+                overdue = 'Medium High'
+            else:
+                overdue = 'High'
+    return overdue
+bureau_amount_overdue = bureau_overdue['AMT_CREDIT_SUM_OVERDUE'].groupby(bureau_overdue['SK_ID_CURR'])
+bureau_sum_amount_overdue = bureau_amount_overdue.sum()
+bureau_sum_amount_overdue_bins = bureau_sum_amount_overdue.apply(amount_bins_overdue)
+sns.countplot(bureau_sum_amount_overdue_bins, palette='muted')
+plt.xlabel("Current Amount Overdue")
+plt.ylabel("Number of Clients")
+plt.show()
+print(bureau_sum_amount_overdue_bins.value_counts())
+
+# 3.7 查看有多少客户延期还款
+credit_prolong=bureau[bureau['CNT_CREDIT_PROLONG'] > 0]
+bureau_credit_prolong_client = credit_prolong['CNT_CREDIT_PROLONG'].groupby(credit_prolong['SK_ID_CURR'])
+bureau_credit_prolong_client_n = bureau_credit_prolong_client.sum()
+sns.distplot(bureau_credit_prolong_client_n)
+plt.xlabel("Number of Credit Prolongued per Client")
+plt.show()
+print(bureau_credit_prolong_client_n.describe())
+
+# 4. 导入 bureau_balance 数据集 
+data3=r'F:\LINs Learning Materials\Kaggle List\Home Credit Default Risk\bureau_balance.csv'
+bureau_balance=pd.read_csv(data3)
+bureau_balance.head()
+
+# 5.1 导入 previous_application 数据集
+data4=r'F:\LINs Learning Materials\Kaggle List\Home Credit Default Risk\previous_application.csv'
+previous_application=pd.read_csv(data4)
+previous_application.head()
+previous_application.info()
+
+# 5.2 查看客户以前的信用贷款数量
+prev_app_acc_n=previous_application['SK_ID_PREV'].groupby(previous_application['SK_ID_CURR']).count()
+sns.distplot(prev_app_acc_n)
+plt.xlabel('Number of Previous Credit Loans per Client')
+plt.show()
+print(prev_app_acc_n.describe())
+
+# 5.3 查看以前贷款的原因
+most_common_purpose = previous_application['SK_ID_PREV'].groupby(previous_application['NAME_CASH_LOAN_PURPOSE'])
+most_common_purpose = most_common_purpose.count().sort_values(ascending = False)[0:5]
+most_common_purpose
+
+sns.barplot(y=most_common_purpose.index,x=most_common_purpose.values, palette= 'muted', orient = 'h')
+plt.ylabel("Number of Application")
+plt.show()
+# 5.4 查看以前贷款申请的结果情况
+application_status=previous_application['SK_ID_PREV'].groupby(previous_application['NAME_CONTRACT_STATUS']).count()
+sns.barplot(x=application_status.values,y=application_status.index,palette= 'muted', orient = 'h')
+plt.ylabel("Number of Application")
+plt.show()
+# 5.5 有多少客户以前被拒绝申请
+refused_application = previous_application[previous_application['NAME_CONTRACT_STATUS'] == 'Refused']
+client_refused_n = len(refused_application['SK_ID_CURR'].unique())
+client_total_n = len(previous_application['SK_ID_CURR'].unique())
+print('Total Clients With Previous Applications: %s\nTotal Clients With Refused Previous Application : %s'
+      %(client_total_n, client_refused_n))
+print('Percentage of Clients With Refuse Previous Applications: %2.2f %%'%((client_refused_n/client_total_n)*100))
+
+prev_app_refused_n = refused_application['SK_ID_PREV'].groupby(refused_application['SK_ID_CURR']).count()
+prev_app_refused_n.describe()
+
+# 6.1 导入 installments_payments 数据集
+data5=r'F:\LINs Learning Materials\Kaggle List\Home Credit Default Risk\installments_payments.csv'
+installments_payments=pd.read_csv(data5)
+installments_payments.head()
+installments_payments.info()
+
+# 6.2 客户延迟分期付款的情况 （'DAYS_ENTRY_PAYMENT’应该代表登记支付了分期付款  'DAYS_INSTALMENT'应该代表分期付款的期限）
+day_payment = installments_payments[['SK_ID_PREV', 'SK_ID_CURR', 'DAYS_INSTALMENT', 'DAYS_ENTRY_PAYMENT']]
+day_payment = day_payment.fillna(0)
+day_payment['DELAYED'] = day_payment['DAYS_ENTRY_PAYMENT'] - day_payment['DAYS_INSTALMENT']
+day_payment.head()
+
+inst_paym_delayed_clients = day_payment['DELAYED'].groupby(day_payment['SK_ID_CURR']).sum()
+inst_paym_delayed_clients_n = (inst_paym_delayed_clients.values > 0).sum()
+inst_paym_not_delayed_clients_n = (inst_paym_delayed_clients.values <= 0).sum()
+sns.barplot(x=['Delayed_clients','Not_delayed_clients'],y=[inst_paym_delayed_clients_n,inst_paym_not_delayed_clients_n])
+plt.ylabel('Number of Clients')
+plt.show()
+
+# 6.3 有多少客户有分期付款的债务
+amt_payment = installments_payments[['SK_ID_PREV', 'SK_ID_CURR', 'NUM_INSTALMENT_NUMBER',  
+                                     'AMT_INSTALMENT', 'AMT_PAYMENT']]
+amt_payment = amt_payment.fillna(0)
+amt_payment['AMT_DEBT'] = amt_payment['AMT_PAYMENT'] - amt_payment['AMT_INSTALMENT']
+inst_paym_debt_client = amt_payment['AMT_DEBT'].groupby(amt_payment['SK_ID_CURR']).sum()
+with_debt_client_n = (inst_paym_debt_client.values < 0).sum()
+without_debt_client_n = (inst_paym_debt_client.values >= 0).sum()
+sns.barplot(x=['Without_Debt', 'With_Debt'],y=[without_debt_client_n, with_debt_client_n], palette= 'muted')
+plt.ylabel("Number of Clients")
+plt.show()
+
+# 7.1 读入 Credit Card Balance 数据集
+data6=r'F:\LINs Learning Materials\Kaggle List\Home Credit Default Risk\credit_card_balance.csv'
+credit_card_balance=pd.read_csv(data6)
+credit_card_balance.head()
+credit_card_balance.info()
+
+# 7.2 客户有多少信用卡债务
+amt_credit_payment=credit_card_balance[['SK_ID_PREV', 'SK_ID_CURR', 'MONTHS_BALANCE', 
+                                          'AMT_BALANCE','AMT_RECEIVABLE_PRINCIPAL']] 
+amt_credit_payment = amt_credit_payment.fillna(0)
+
+last_balance = pd.DataFrame(columns = ['SK_ID_PREV', 'MONTHS_BALANCE'])
+last_balance['SK_ID_PREV'] = amt_credit_payment['MONTHS_BALANCE'].groupby(amt_credit_payment['SK_ID_PREV']).max().index
+last_balance['MONTHS_BALANCE'] = amt_credit_payment['MONTHS_BALANCE'].groupby(amt_credit_payment['SK_ID_PREV']).max().values
+last_balance = last_balance[['SK_ID_PREV', 'MONTHS_BALANCE']].apply(tuple, 1)
+
+# Filtering only the last month balance
+amt_credit_payment = amt_credit_payment[amt_credit_payment[['SK_ID_PREV', 'MONTHS_BALANCE']].apply(tuple, 1).isin(last_balance)]
+
+# Creating a new debt colunm on amount_credit_payment
+amt_credit_payment['AMT_DEBT'] = amt_credit_payment['AMT_RECEIVABLE_PRINCIPAL'] - amt_credit_payment['AMT_BALANCE']
+amt_credit_payment.head()
